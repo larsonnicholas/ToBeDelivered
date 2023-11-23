@@ -2,9 +2,12 @@ import socket
 import os
 from datetime import datetime
 
-#HOST = "134.197.34.36"
-HOST = "127.0.1.1"
+HOST = "134.197.34.36"
+#HOST = "127.0.1.1"
 PORT = 5928
+UserID = ""
+destination = HOST
+BUFFER_SIZE = 4096
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((HOST,PORT))
@@ -19,7 +22,6 @@ def findFile(fileString):
             print("Incorrect permissions!")
         else:
             print("Unknown Error")
-        
         raise e
     else:
         return fileSize
@@ -32,16 +34,32 @@ def fileMetadata(filePath):
         fileExt = fileInfo[1]
         timeUpload = datetime.now()
         formatDate = '%m/%d/%Y %H:%M:%S'
-        return (fileName, fileSize, fileExt, timeUpload.strftime(formatDate)) 
+        return (fileName, str(fileSize), fileExt, timeUpload.strftime(formatDate)) 
 
-def transferFile(filePath):
+def transferFile(filePath, destination):
     metadata = fileMetadata(filePath)
-    print(metadata)
-    if serverMessage("!SEND"):
-        None
+    #metadata.append(UserID)
+
+    #encryptFile
+    if serverMessage("!SEND " + " ".join([i for i in metadata]) + " " + destination):
+        with open(filePath, "rb") as file:
+            while True:
+                fileContents = file.read(BUFFER_SIZE)
+                if not fileContents:
+                    serverMessage("!EOF")
+                    break
+                if serverFileData(fileContents):
+                    continue
+                else:
+                    print("Failed transfer")
+                    break
+    else:
+        raise "File Transfer Failed!"
+                
         
 def serverMessage(data):
     data = data.encode('utf-8')
+    print(data)
     dataLen = len(data)
     padding = " "* (128 - dataLen)
     client.send(data)
@@ -53,18 +71,23 @@ def serverMessage(data):
         return True
 
 def serverFileData(data):
-    data = data.encode('utf-8')
     dataLen = len(data)
-    padding = " "* (128 - dataLen)
+    padding = " "* (BUFFER_SIZE - dataLen)
     client.send(data)
     client.send(padding.encode('utf-8'))
-    client.accept()
+    okmsg = client.recv(2).decode('utf-8')
+    if okmsg == "OK":
+        return True
+    else: 
+        print("Did not receive OK signal from server")
+        return False
 
 def disconnectServer():
-    client.send(b"!close")
+    serverMessage("!close")
 
 try:
-    transferFile("test.txt")
+    transferFile("ExampleFile.txt", destination)
 except Exception as e:
     print(e)
+    disconnectServer()
 disconnectServer()
