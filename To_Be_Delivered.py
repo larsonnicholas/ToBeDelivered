@@ -157,7 +157,18 @@ class loggedInWindow(QDialog):
 
         self.setLayout(layoutLoggedIn)
 
+        uploadFileSection.clicked.connect(self.launchUploadFile)
+        newFolderSection.clicked.connect(self.launchCreateFolder)
+
         self.setWindowTitle(windowName)
+
+    def launchUploadFile(self):
+        self.window = uploadFileWindow()
+        self.window.show()
+    
+    def launchCreateFolder(self):
+        self.window = createFolderWindow()
+        self.window.show()
 
 class uploadFileWindow(QDialog):
     def __init__(self):
@@ -186,7 +197,13 @@ class uploadFileWindow(QDialog):
 
         self.setLayout(layoutUploadFile)
 
+        scheduleTransfer.clicked.connect(self.launchSchedule)        
+
         self.setWindowTitle(windowName)
+
+    def launchSchedule(self):
+        self.window = uploadFileScheduleWindow()
+        self.window.show()
 
 class uploadFileScheduleWindow(QDialog):
     def __init__(self):
@@ -220,7 +237,11 @@ class uploadFileScheduleWindow(QDialog):
 
         self.setLayout(layoutUploadFileSch)
 
+        # add clicked event for applyButton and allow it to send the file accordingly. 
+
         self.setWindowTitle(windowName)
+
+        # function to launch the next window. 
 
 class createFolderWindow(QDialog):
     def __init__(self):
@@ -310,13 +331,24 @@ class mainWindow(QDialog):  # class inherits from QDialog
         self.setLayout(layoutHome)
 
         # connect the widgets with events and handlers
+        nextButtonSignIn.clicked.connect(self.launchLoggedIn)
         warningSymbolButton.clicked.connect(self.launchForgotPW)
+        createNewAccountButton.clicked.connect(self.launchCreateAccount)
 
         # sets name of the window
         self.setWindowTitle(windowName)
 
+    # need to check for correct password and username to be able to launch logged in window. 
+    def launchLoggedIn(self):
+        self.window = loggedInWindow()
+        self.window.show()
+
     def launchForgotPW(self):
         self.window = forgotPWWindow()
+        self.window.show()
+
+    def launchCreateAccount(self):
+        self.window = createAccountWindow()
         self.window.show()
 
 
