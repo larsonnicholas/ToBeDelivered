@@ -5,6 +5,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import sys
+import os
 
 class forgotPWWindow(QDialog):
     def __init__(self):
@@ -176,34 +177,50 @@ class uploadFileWindow(QDialog):
 
         QDialog.__init__(self)
 
-        layoutUploadFile = QGridLayout()
+        self.layoutUploadFile = QGridLayout()
+        self.setFixedWidth(500)
 
-        uploadFileLabel = QLabel("<h2>Upload a File<\h2>")
-        deviceOption = QLabel("Target storage device:")
-        deviceOptionInput = QLineEdit()
-        filePath = QLabel("File path:")
-        filePathInput = QLineEdit()
-        scheduleTransfer = QPushButton("Schedule")
+        self.uploadFileLabel = QLabel("<h2>Upload a File<\h2>")
+        self.deviceOption = QLabel("Target storage device:")
+        self.deviceOptionInput = QLineEdit()
+        self.filePath = QLabel("File path:")
+        self.filePathInput = QLineEdit()
+        self.deviceOptionInput.setPlaceholderText("Storage Device")
+        self.filePathInput.setPlaceholderText("File path")
 
-        deviceOptionInput.setPlaceholderText("Storage Device")
-        filePathInput.setPlaceholderText("File path")
+        #buttons
+        self.scheduleTransfer = QPushButton("Schedule")
+        self.sendNow = QPushButton("Send Now")
+        self.sendNow.setStyleSheet("background-color: #7A01FF; color: white")
 
-        layoutUploadFile.addWidget(uploadFileLabel, 0, 0)
-        layoutUploadFile.addWidget(deviceOption, 1, 0)
-        layoutUploadFile.addWidget(deviceOptionInput, 1, 1)
-        layoutUploadFile.addWidget(filePath, 2, 0)
-        layoutUploadFile.addWidget(filePathInput, 2, 1)
-        layoutUploadFile.addWidget(scheduleTransfer, 3, 0)
+        self.layoutUploadFile.addWidget(self.uploadFileLabel, 0, 0)
+        self.layoutUploadFile.addWidget(self.deviceOption, 1, 0)
+        self.layoutUploadFile.addWidget(self.deviceOptionInput, 1, 1)
+        self.layoutUploadFile.addWidget(self.filePath, 2, 0)
+        self.layoutUploadFile.addWidget(self.filePathInput, 2, 1)
+        self.layoutUploadFile.addWidget(self.scheduleTransfer, 3, 0)
+        self.layoutUploadFile.addWidget(self.sendNow, 3, 1)
 
-        self.setLayout(layoutUploadFile)
-
-        scheduleTransfer.clicked.connect(self.launchSchedule)        
-
+        self.setLayout(self.layoutUploadFile)
         self.setWindowTitle(windowName)
+
+        #button connections
+        self.scheduleTransfer.clicked.connect(self.launchSchedule)        
+        self.sendNow.clicked.connect(self.sendNow_Clicked)
+
+        #open file explorer
+        filePath = QFileDialog.getOpenFileName(self, "server_upload.py")
+        self.filePathInput.setText(filePath[0])
 
     def launchSchedule(self):
         self.window = uploadFileScheduleWindow()
         self.window.show()
+
+    def sendNow_Clicked(self):
+        #TODO: Implement code here to send file indicated by file path
+        filePath = self.filePathInput.text()
+        if filePath != '':
+            self.close()
 
 class uploadFileScheduleWindow(QDialog):
     def __init__(self):
@@ -302,38 +319,40 @@ class mainWindow(QDialog):  # class inherits from QDialog
 
         QDialog.__init__(self)   # call QDialog's constructor method (parent)
 
-        layoutHome = QGridLayout()   # add layout for how QWidget should be displayed on screen
+        self.layoutHome = QGridLayout()   # add layout for how QWidget should be displayed on screen
 
-        signInLabel = QLabel("<h1>Sign In</h1>")   # create a label widget
-        userName = QLineEdit()  # blank line edit
-        password = QLineEdit()
-        nextButtonSignIn = QPushButton(">")   # create a push button widget
-        forgotPWLabel = QLabel("Forward Password?")   
-        warningSymbolButton = QPushButton("⚠")
-        createNewAccountLabel = QLabel("Don't have an account?")
-        createNewAccountButton = QPushButton("Create an account")
+        self.signInLabel = QLabel("<h1>Sign In</h1>")   # create a label widget
+        self.userName = QLineEdit()  # blank line edit
+        self.password = QLineEdit() #PasswordEdit()
+        #hide password. Can be reversed (ex. user presses show password button) by using QLineEdit.Normal
+        self.password.setEchoMode(QLineEdit.Password)
+        self.nextButtonSignIn = QPushButton(">")   # create a push button widget
+        self.forgotPWLabel = QLabel("Forward Password?")   
+        self.warningSymbolButton = QPushButton("⚠")
+        self.createNewAccountLabel = QLabel("Don't have an account?")
+        self.createNewAccountButton = QPushButton("Create an account")
 
         # add placeholder text 
-        userName.setPlaceholderText("Username")   # places text that can be overwritten in the ine edit widget
-        password.setPlaceholderText("Password")
+        self.userName.setPlaceholderText("Username")   # places text that can be overwritten in the ine edit widget
+        self.password.setPlaceholderText("Password")
 
         # add widgets to layout
-        layoutHome.addWidget(signInLabel, 0, 0)  # row, column
-        layoutHome.addWidget(userName, 1, 0)
-        layoutHome.addWidget(password, 2, 0)
-        layoutHome.addWidget(nextButtonSignIn, 2, 1)
-        layoutHome.addWidget(forgotPWLabel, 3, 0)
-        layoutHome.addWidget(warningSymbolButton, 3, 1)
-        layoutHome.addWidget(createNewAccountLabel, 4, 0)
-        layoutHome.addWidget(createNewAccountButton, 4, 1)
+        self.layoutHome.addWidget(self.signInLabel, 0, 0)  # row, column
+        self.layoutHome.addWidget(self.userName, 1, 0)
+        self.layoutHome.addWidget(self.password, 2, 0)
+        self.layoutHome.addWidget(self.nextButtonSignIn, 2, 1)
+        self.layoutHome.addWidget(self.forgotPWLabel, 3, 0)
+        self.layoutHome.addWidget(self.warningSymbolButton, 3, 1)
+        self.layoutHome.addWidget(self.createNewAccountLabel, 4, 0)
+        self.layoutHome.addWidget(self.createNewAccountButton, 4, 1)
 
         # tell QDialog constructor method to use layout to display the elements on the screen
-        self.setLayout(layoutHome)
+        self.setLayout(self.layoutHome)
 
         # connect the widgets with events and handlers
-        nextButtonSignIn.clicked.connect(self.launchLoggedIn)
-        warningSymbolButton.clicked.connect(self.launchForgotPW)
-        createNewAccountButton.clicked.connect(self.launchCreateAccount)
+        self.nextButtonSignIn.clicked.connect(self.nextButtonSignIn_Clicked)
+        self.warningSymbolButton.clicked.connect(self.launchForgotPW)
+        self.createNewAccountButton.clicked.connect(self.launchCreateAccount)
 
         # sets name of the window
         self.setWindowTitle(windowName)
@@ -351,10 +370,16 @@ class mainWindow(QDialog):  # class inherits from QDialog
         self.window = createAccountWindow()
         self.window.show()
 
+    def nextButtonSignIn_Clicked(self):
+        email = self.userName.text()
+        password = self.password.text()
+        # if email == "admin" and password == "pass":
+        #     self.close()
+        #     self.launchLoggedIn()
+        self.close()
+        self.launchLoggedIn()
 
 app = QApplication(sys.argv)
 fileApp = mainWindow()
 fileApp.show()
 sys.exit(app.exec_())
-
-
