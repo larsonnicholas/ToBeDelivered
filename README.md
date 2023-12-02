@@ -4,4 +4,4 @@
 1. Add more screens to the GUI (screen to select whether the application is running on the storage computer or not)
 
 ## Known Issues in this Branch:
-1. None so far :)
+1. Program seg faults when user exits (was an issue when this branch was created)
