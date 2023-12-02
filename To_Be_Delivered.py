@@ -419,21 +419,24 @@ class mainWindow(QDialog):  # class inherits from QDialog
         self.nextButtonSignIn = QPushButton(">")   # create a push button widget
         self.warningSymbolButton = QPushButton("⚠")
         self.createNewAccountButton = QPushButton("Create an account")
+        self.showPWButton = QPushButton("<0>")
 
         # button connections
         self.nextButtonSignIn.clicked.connect(self.nextButtonSignIn_Clicked)
         self.warningSymbolButton.clicked.connect(self.launchForgotPW)
         self.createNewAccountButton.clicked.connect(self.launchCreateAccount)
+        self.showPWButton.clicked.connect(self.revealPW)
 
         # add widgets to layout
         self.layoutHome.addWidget(self.signInLabel, 0, 0)  # row, column
         self.layoutHome.addWidget(self.userName, 1, 0)
         self.layoutHome.addWidget(self.password, 2, 0)
-        self.layoutHome.addWidget(self.nextButtonSignIn, 2, 1)
+        self.layoutHome.addWidget(self.nextButtonSignIn, 2, 2)
         self.layoutHome.addWidget(self.forgotPWLabel, 3, 0)
         self.layoutHome.addWidget(self.warningSymbolButton, 3, 1)
         self.layoutHome.addWidget(self.createNewAccountLabel, 4, 0)
         self.layoutHome.addWidget(self.createNewAccountButton, 4, 1)
+        self.layoutHome.addWidget(self.showPWButton, 2, 1)
 
         # tell QDialog constructor method to use layout to display the elements on the screen
         self.setLayout(self.layoutHome)
@@ -462,6 +465,9 @@ class mainWindow(QDialog):  # class inherits from QDialog
         #     self.launchLoggedIn()
         self.close()
         self.launchLoggedIn()
+
+    def revealPW(self):
+        self.password.setEchoMode(QLineEdit.Normal)
 
 app = QApplication(sys.argv)
 fileApp = mainWindow()
