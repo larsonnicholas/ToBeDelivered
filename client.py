@@ -9,8 +9,8 @@ from Crypto.Random import get_random_bytes
 from string import ascii_lowercase
 #
 
-#HOST = "134.197.34.36"
-HOST = "127.0.1.1"
+HOST = "134.197.34.36"
+#HOST = "127.0.1.1"
 PORT = 5928
 UserID = ""
 destination = HOST
@@ -24,7 +24,7 @@ def connectServer():
         client.connect((HOST,PORT))
     except TimeoutError as e:
         #Display could not reach server error window
-        raise e
+        raise Exception("Server Connection Timed Out")
     else:
         return client
 
@@ -34,11 +34,13 @@ def findFile(fileString):
     except OSError as e:
         if e.errno == 2:
             print("Could not find file!")
+            raise Exception("File Could Not Be Found.")
         elif e.errno in [13,1]:
             print("Incorrect permissions!")
+            raise Exception("Incorrect File Permissions.")
         else:
             print("Unknown Error")
-        raise e
+            raise Exception("Please try again later.")
     else:
         return fileSize
     
@@ -51,7 +53,7 @@ def fileMetadata(filePath):
         fileExt = fileInfo[1]
         timeUpload = datetime.now()
         formatDate = '%m/%d/%Y %H:%M:%S'
-        return (fileName, str(fileSize), fileExt, timeUpload.strftime(formatDate)) 
+        return (fileName, fileExt, str(fileSize), timeUpload.strftime(formatDate)) 
 
 def transferFile(filePath, destination):
     metadata = fileMetadata(filePath)
@@ -64,10 +66,14 @@ def transferFile(filePath, destination):
         try:
             with open(encryptedFile, "rb") as file:
                 client.sendfile(file)
-        except TimeoutError as e:
+        except TimeoutError:
             #Display failed file transfer error window
-            raise e
+            raise Exception("File Transfer Failed: Server Timed Out")
         client.close()
+
+        #Database Information Entry Section
+        #
+        #
     else:
         print("Didn't send...")
         
@@ -106,43 +112,31 @@ def getPrivKey():
         with open(keyPath, "rb") as file:
             key = file.read()
         if len(key) != 32:
-            print("Key length not appropriate for AES256")
-            #Key length invalid
-            return None
+            raise Exception("Key length not appropriate for AES256")
         else:
-            print(key)
             return key
     #Check in USB drive WINDOWS
     for drive in ascii_uppercase[:-24:-1]:
         keyPath = drive + ":\key.key"
-        print(keyPath)
         if os.path.exists(keyPath):
             with open(keyPath, "rb") as file:
                 key = file.read()
             if len(key) != 32:
-                print("Key length not appropriate for AES256")
-                #Key length invalid
-                return None
+                raise Exception("Key length not appropriate for AES256")
             else:
-                print(key)
                 return key
     #This section is so the drive can still work if on WSL, this section should be removed when packaging.
     for drive in ascii_lowercase[:-24:-1]:
         keyPath = "/mnt/" + drive + "/key.key"
-        print(keyPath)
         if os.path.exists(keyPath):
             with open(keyPath, "rb") as file:
                 key = file.read()
             if len(key) != 32:
-                print("Key length not appropriate for AES256")
-                #Key length invalid
-                return None
+                raise Exception("Key length not appropriate for AES256")
             else:
-                print(key)
                 return key
     #Private Key not found, don't encrypt the file and cancel transfer.
-    print("Key Not Found")
-    return None
+    raise Exception("Could Not Find Private Key.")
 
 def encryptFile(filePath):
     fileName = os.path.basename(filePath)
@@ -152,14 +146,12 @@ def encryptFile(filePath):
     if key:
         cipher = AES.new(key, AES.MODE_EAX)
         ciphertext, tag  = cipher.encrypt_and_digest(fileData)
-        print(tag)
-
         encryptedFile = fileName + "_enc"
         with open(encryptedFile, "wb") as file:
             [file.write(x) for x in (cipher.nonce, tag, ciphertext)]
         return encryptedFile
     else:
-        return False
+        raise Exception("Failed To Encrypt File. Please try again later.")
         
 def decryptFile(filePath):
     fileName = os.path.basename(filePath)
@@ -177,6 +169,6 @@ def decryptFile(filePath):
 
 try:
     #transferFile("CS450_Ch8.pdf", destination)
-    decryptFile("CS450_Ch8.pdf_enc")
+    decryptFile("CS450_Ch8_New.pdf")
 except Exception as e:
     print(e)

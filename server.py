@@ -37,7 +37,7 @@ def clientHandler(conn, addr):
 
 def receiveFile(conn, command):
     #store metadata in tables
-    fileName = command[0] + "_New" + command[2]
+    fileName = command[0] + command[1] + "_enc"
     with open(fileName, "wb") as file:
         data = conn.recv(BUFFER_SIZE)
         while data:
