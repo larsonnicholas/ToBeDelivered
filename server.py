@@ -26,6 +26,7 @@ def clientHandler(conn, addr):
                     receiveFile(conn, command[1:])
                 case "!LOGIN":
                     conn.send("OK".encode('utf-8'))
+                    userLogin()
                 case _:
                     print("Command not recognized")
                     continue
