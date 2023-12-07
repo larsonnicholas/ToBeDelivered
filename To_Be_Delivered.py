@@ -406,7 +406,6 @@ class mainWindow(QDialog):  # class inherits from QDialog
         # line edits
         self.userName = QLineEdit()
         self.password = QLineEdit()
-        #hide password. Can be reversed (ex. user presses show password button) by using QLineEdit.Normal
         self.password.setEchoMode(QLineEdit.Password)
         # set placeholder text
         self.userName.setPlaceholderText("Username")
@@ -420,6 +419,7 @@ class mainWindow(QDialog):  # class inherits from QDialog
         self.warningSymbolButton = QPushButton("⚠")
         self.createNewAccountButton = QPushButton("Create an account")
         self.showPWButton = QPushButton("<0>")
+        self.password_revealed = False
 
         # button connections
         self.nextButtonSignIn.clicked.connect(self.nextButtonSignIn_Clicked)
@@ -467,7 +467,12 @@ class mainWindow(QDialog):  # class inherits from QDialog
         self.launchLoggedIn()
 
     def revealPW(self):
-        self.password.setEchoMode(QLineEdit.Normal)
+        if self.password_revealed == False:
+            self.password.setEchoMode(QLineEdit.Normal)
+        else:
+            self.password.setEchoMode(QLineEdit.Password)
+        #toggle password_revealed
+        self.password_revealed = (self.password_revealed == False)
 
 app = QApplication(sys.argv)
 fileApp = mainWindow()
