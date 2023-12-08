@@ -19,10 +19,10 @@ BUFFER_SIZE = 4096
 #CPE400 Lec29 has TLS Socket example, we should probably wrap the socket with TLS.
 def connectServer():
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.settimeout(5)
+    client.settimeout(10)
     try:
         client.connect((HOST,PORT))
-    except TimeoutError as e:
+    except TimeoutError:
         #Display could not reach server error window
         raise Exception("Server Connection Timed Out")
     else:
@@ -33,13 +33,10 @@ def findFile(fileString):
         fileSize = os.path.getsize(fileString)
     except OSError as e:
         if e.errno == 2:
-            print("Could not find file!")
             raise Exception("File Could Not Be Found.")
         elif e.errno in [13,1]:
-            print("Incorrect permissions!")
             raise Exception("Incorrect File Permissions.")
         else:
-            print("Unknown Error")
             raise Exception("Please try again later.")
     else:
         return fileSize
@@ -59,9 +56,7 @@ def transferFile(filePath, destination):
     metadata = fileMetadata(filePath)
     client = connectServer()
     #metadata.append(UserID)
-    key = getPrivKey()
-    if key != None:
-        encryptedFile = encryptFile(filePath)
+    encryptedFile = encryptFile(filePath)
     if serverMessage("!SEND " + " ".join([i for i in metadata]) + " " + destination, client):
         try:
             with open(encryptedFile, "rb") as file:
@@ -69,14 +64,32 @@ def transferFile(filePath, destination):
         except TimeoutError:
             #Display failed file transfer error window
             raise Exception("File Transfer Failed: Server Timed Out")
-        client.close()
+
+        os.remove(encryptedFile)
 
         #Database Information Entry Section
         #
         #
     else:
-        print("Didn't send...")
-        
+        raise Exception("File Transfer Failed: Try Again Later")
+
+def retrieveFile(filePath):
+    client = connectServer()
+    if serverMessage("!GET " + filePath, client):
+        try:
+            with open(filePath, "wb") as file:
+                data = client.recv(BUFFER_SIZE)
+                while data:
+                    file.write(data)
+                    data = client.recv(BUFFER_SIZE)
+        except TimeoutError:
+            raise Exception("File Failed To Retrieve: Server Timed Out")
+        except Exception as e:
+            raise Exception(f"File Failed To Retrieve: {e}")
+        else:
+            client.shutdown(socket.SHUT_RD)
+            decryptFile(filePath)
+ 
 def serverMessage(data, client):
     dataLen = len(data)
     padding = " "*(128 - dataLen)
@@ -85,6 +98,7 @@ def serverMessage(data, client):
     client.send(data.encode('utf-8'))
     client.settimeout(5)
     serverState = client.recv(2).decode('utf-8')
+    print(serverState)
     if serverState != "OK":
         return False
     else: 
@@ -125,6 +139,7 @@ def getPrivKey():
                 raise Exception("Key length not appropriate for AES256")
             else:
                 return key
+            
     #This section is so the drive can still work if on WSL, this section should be removed when packaging.
     for drive in ascii_lowercase[:-24:-1]:
         keyPath = "/mnt/" + drive + "/key.key"
@@ -135,6 +150,7 @@ def getPrivKey():
                 raise Exception("Key length not appropriate for AES256")
             else:
                 return key
+    #
     #Private Key not found, don't encrypt the file and cancel transfer.
     raise Exception("Could Not Find Private Key.")
 
@@ -143,15 +159,13 @@ def encryptFile(filePath):
     with open(filePath, "rb") as file:
         fileData = file.read()
     key = getPrivKey()
-    if key:
-        cipher = AES.new(key, AES.MODE_EAX)
-        ciphertext, tag  = cipher.encrypt_and_digest(fileData)
-        encryptedFile = fileName + "_enc"
-        with open(encryptedFile, "wb") as file:
-            [file.write(x) for x in (cipher.nonce, tag, ciphertext)]
-        return encryptedFile
-    else:
-        raise Exception("Failed To Encrypt File. Please try again later.")
+
+    cipher = AES.new(key, AES.MODE_EAX)
+    ciphertext, tag  = cipher.encrypt_and_digest(fileData)
+    encryptedFile = fileName + "_enc"
+    with open(encryptedFile, "wb") as file:
+        [file.write(x) for x in (cipher.nonce, tag, ciphertext)]
+    return encryptedFile
         
 def decryptFile(filePath):
     fileName = os.path.basename(filePath)
@@ -161,14 +175,17 @@ def decryptFile(filePath):
     if key:
         cipher = AES.new(key, AES.MODE_EAX, nonce)
         fileData = cipher.decrypt_and_verify(ciphertext, tag)
-
+        originalFileName = fileName
         fileName = fileName.replace("_enc","")
-        fileName = fileName + "_new"
+        fileInfo = os.path.splitext(fileName)
+        fileName = "retrieved_" + fileInfo[0] + fileInfo[1]
         with open(fileName, "wb") as file:
             file.write(fileData)
 
+        os.remove(originalFileName)
+
 try:
     #transferFile("CS450_Ch8.pdf", destination)
-    decryptFile("CS450_Ch8_New.pdf")
+    retrieveFile("CS450_Ch8.pdf")
 except Exception as e:
     print(e)

@@ -1,5 +1,6 @@
 import socket
 import threading
+import os
 
 HOST = socket.gethostbyname(socket.gethostname())
 PORT = 5928
@@ -11,49 +12,49 @@ sock.bind((HOST, PORT))
 def clientHandler(conn, addr):
     print(f"New Connection from: {addr}.")
     try:
-        while True:
-            command = conn.recv(128).decode('utf-8')
-            print(f"From {addr}: {command}")
-            if "!close" in command:
-                break
-            elif not command:
-                break
-            command = command.split()
-            print(f"Split command: {command}")
-            match command[0]:
-                case "!SEND":
-                    conn.send("OK".encode('utf-8'))
-                    receiveFile(conn, command[1:])
-                case "!LOGIN":
-                    conn.send("OK".encode('utf-8'))
-                    userLogin()
-                case _:
-                    print("Command not recognized")
-                    continue
+        command = conn.recv(128).decode('utf-8')
+        print(f"From {addr}: {command}")
+        if not command:
+            raise Exception("Empty Input")
+        command = command.split()
+        match command[0]:
+            case "!SEND":
+                conn.send("OK".encode('utf-8'))
+                receiveFile(conn, command[1:])
+            case "!GET":
+                conn.send("OK".encode('utf-8'))
+                sendFile(conn, command[1:])
+            case "!LOGIN":
+                conn.send("OK".encode('utf-8'))
+                userLogin()
+            case _:
+                print("Command not recognized")
     except TimeoutError:
         print("Client timed out.")
+    except Exception as e:
+        print(e)
     print(f"Connection {addr} closed.\n")
     conn.close()
 
 def receiveFile(conn, command):
     #store metadata in tables
-    fileName = command[0] + command[1] + "_enc"
+    fileName = command[0] + command[1]
     with open(fileName, "wb") as file:
         data = conn.recv(BUFFER_SIZE)
         while data:
-            if "!EOF".encode('utf-8') in data:
-                print(data)
-                data = data.strip("!EOF".encode('utf-8'))
-                print(data)
-                file.write(data)
-                break
-            else:
-                file.write(data)
-                print(data)
-                data = conn.recv(BUFFER_SIZE)
-    conn.send("OK".encode('utf-8'))
-    print("File received")
+            file.write(data)
+            data = conn.recv(BUFFER_SIZE)
+        conn.shutdown(socket.SHUT_RD)
+    print(f"File \"{fileName}\" received")
 
+def sendFile(conn, command):
+    #get file metadata, make sure user can access
+    fileName = command[0]
+    if os.path.isfile(fileName):
+        with open(fileName, "rb") as file:
+            conn.sendfile(file)
+    else:
+        raise Exception("Requested File Does Not Exist")
 
 def userLogin():
     None
@@ -66,12 +67,14 @@ def serverListen():
     print(f"{HOST}:{PORT}")
     while True:
         conn, addr = sock.accept()
-        conn.settimeout(5)
+        conn.settimeout(10)
         thread = threading.Thread(target=clientHandler, args=(conn, addr))
         thread.start()
         print(f"Connection Started... Active Threads: {threading.active_count()}")
 
-try:
-    serverListen()
-except KeyboardInterrupt:
-    sock.close()
+while True:
+    try:
+        serverListen()
+    except KeyboardInterrupt:
+        sock.close()
+        break
