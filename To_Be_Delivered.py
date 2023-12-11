@@ -417,7 +417,7 @@ class storageOrUserDeviceWiindow(QDialog):
 
         # sets name of the window
         self.setWindowTitle(windowName)
-
+        
     # launches the user sign in window if user is on user computer 
     def launchUserComputerSigninWindow(self):
         self.window = mainWindow()
@@ -433,11 +433,11 @@ class storageComputerSigninWindow(QDialog):
 
         super().__init__()   # call QDialog's constructor method (parent)
 
-        self.setStyleSheet("background-color: " + LIGHT_PURPLE + ";") #sets background color, very similar to CSS
+        self.setStyleSheet("background-color: " + LIGHT_PURPLE + ";") # sets background color, very similar to CSS
         self.layoutStorageComputerSignin = QGridLayout()   # add layout for how QWidget should be displayed on screen
 
         # labels
-        self.signInLabel = QLabel("<h1>Sign In</h1>")   # create a label widget
+        self.signInLabel = QLabel("<h1>Storage Sign In</h1>")   # create a label widget
         self.forgotPWLabel = QLabel("Forward Password?")   
         self.createNewAccountLabel = QLabel("Don't have an account?")
 
@@ -484,7 +484,7 @@ class storageComputerSigninWindow(QDialog):
 
     # need to check for correct password and username to be able to launch logged in window. 
     def launchLoggedIn(self):
-        self.window = loggedInWindow()
+        self.window = loggedInStorageWindow()
         self.window.show()
 
     def launchForgotPW(self):
@@ -512,6 +512,60 @@ class storageComputerSigninWindow(QDialog):
         #toggle password_revealed
         self.password_revealed = (self.password_revealed == False)
 
+class loggedInStorageWindow(QDialog):
+    def __init__(self):
+        windowName = "Welcome Storage user_name"
+
+        super().__init__()
+
+        self.setStyleSheet("background-color: " + LIGHT_PURPLE + ";")
+        self.setWindowTitle(windowName)
+        layoutLoggedIn = QGridLayout()
+
+        # labels
+        self.folderSection = QListWidget()
+        self.folderSection.setMaximumSize(150, 500)
+        QListWidgetItem("Home", self.folderSection)
+        self.mainSection = QListWidget()
+        self.mainSection.setMaximumSize(1000, 1000)
+        self.folderSection.setStyleSheet("background-color: white;")
+        self.mainSection.setStyleSheet("background-color: white;")
+        
+        # buttons
+        self.newFolderSection = QPushButton("Create New Folder")
+        self.uploadFileSection = QPushButton("Upload a File")
+        self.uploadFileSection.setStyleSheet("background-color: white;")
+        self.downloadFileButton = QPushButton("Download file")
+
+        # button connections
+        self.uploadFileSection.clicked.connect(self.launchUploadFile)
+        self.newFolderSection.clicked.connect(self.launchCreateFolder)
+        # self.downloadFileButton.clicked.connect(self.launchCreateFolder), SHOULD DOWNLOAD FILE TO USER COMPUTER
+
+        layoutLoggedIn.addWidget(self.folderSection, 0, 0)
+        layoutLoggedIn.addWidget(self.newFolderSection, 1, 0)
+        layoutLoggedIn.addWidget(self.mainSection, 0, 1)
+        layoutLoggedIn.addWidget(self.uploadFileSection, 1, 1)
+        layoutLoggedIn.addWidget(self.downloadFileButton, 1, 2)
+
+        def addFilename(fileName):
+            # fileName = receiveFile(), server call 
+            # fileName = "TEST FILE NAME"
+            newFilename = QListWidgetItem(fileName)
+            self.mainSection.addItem(newFilename)
+
+        addFilename("TEST FILE")
+
+        self.setLayout(layoutLoggedIn)
+
+    def launchUploadFile(self):
+        self.window = uploadFileWindow()
+        self.window.show()
+    
+    def launchCreateFolder(self):
+        self.window = createFolderWindow()
+        self.window.show()
+    
 class mainWindow(QDialog):  # class inherits from QDialog
 
     def __init__(self):   # override constructor method
