@@ -226,41 +226,49 @@ class uploadFileWindow(QDialog):
 
         # labels
         self.uploadFileLabel = QLabel("<h2>Upload a File<\h2>")
-        self.deviceOption = QLabel("Target storage device:")
+        # self.deviceOption = QLabel("Target storage device:")
         self.filePath = QLabel("File path:")
 
         # line edits
-        self.deviceOptionInput = QLineEdit()
+        # self.deviceOptionInput = QLineEdit()
         self.filePathInput = QLineEdit()
-        self.deviceOptionInput.setPlaceholderText("Storage Device")
+        # self.deviceOptionInput.setPlaceholderText("Storage Device")
         self.filePathInput.setPlaceholderText("File path")
-        self.deviceOptionInput.setStyleSheet("background-color: white;")
+        # self.deviceOptionInput.setStyleSheet("background-color: white;")
         self.filePathInput.setStyleSheet("background-color: white;")
 
         # buttons
         self.scheduleTransfer = QPushButton("Schedule")
         self.sendNow = QPushButton("Send Now")
         self.sendNow.setStyleSheet("background-color: " + PURPLE + "; color: white;")
+        self.open_file_explorer = QPushButton("Open File Explorer")
+        self.open_file_explorer.setStyleSheet("background-color: white;")
 
         # button connections
         self.scheduleTransfer.clicked.connect(self.launchSchedule)        
         self.sendNow.clicked.connect(self.sendNow_Clicked)
+        self.open_file_explorer.clicked.connect(self.launch_file_explorer)
 
         self.layoutUploadFile.addWidget(self.uploadFileLabel, 0, 0)
-        self.layoutUploadFile.addWidget(self.deviceOption, 1, 0)
-        self.layoutUploadFile.addWidget(self.deviceOptionInput, 1, 1)
+        # self.layoutUploadFile.addWidget(self.deviceOption, 1, 0)
+        # self.layoutUploadFile.addWidget(self.deviceOptionInput, 1, 1)
         self.layoutUploadFile.addWidget(self.filePath, 2, 0)
         self.layoutUploadFile.addWidget(self.filePathInput, 2, 1)
         self.layoutUploadFile.addWidget(self.scheduleTransfer, 3, 0)
-        self.layoutUploadFile.addWidget(self.sendNow, 3, 1)
+        self.layoutUploadFile.addWidget(self.open_file_explorer, 3, 1)
+        self.layoutUploadFile.addWidget(self.sendNow, 3, 2)
 
         self.setLayout(self.layoutUploadFile)
         self.setWindowTitle(windowName)
 
         #open file explorer
+        self.launch_file_explorer()
+        self.setStyleSheet("background-color: " + LIGHT_PURPLE + ";")
+
+    def launch_file_explorer(self):
         filePath = QFileDialog.getOpenFileName(self, "")
         self.filePathInput.setText(filePath[0])
-        self.setStyleSheet("background-color: " + LIGHT_PURPLE + ";")
+
 
     def launchSchedule(self):
         self.window = uploadFileScheduleWindow()
