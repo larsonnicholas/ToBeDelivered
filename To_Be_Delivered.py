@@ -406,7 +406,6 @@ class mainWindow(QDialog):  # class inherits from QDialog
         # line edits
         self.userName = QLineEdit()
         self.password = QLineEdit()
-        #hide password. Can be reversed (ex. user presses show password button) by using QLineEdit.Normal
         self.password.setEchoMode(QLineEdit.Password)
         # set placeholder text
         self.userName.setPlaceholderText("Username")
@@ -419,21 +418,25 @@ class mainWindow(QDialog):  # class inherits from QDialog
         self.nextButtonSignIn = QPushButton(">")   # create a push button widget
         self.warningSymbolButton = QPushButton("⚠")
         self.createNewAccountButton = QPushButton("Create an account")
+        self.showPWButton = QPushButton("<0>")
+        self.password_revealed = False
 
         # button connections
         self.nextButtonSignIn.clicked.connect(self.nextButtonSignIn_Clicked)
         self.warningSymbolButton.clicked.connect(self.launchForgotPW)
         self.createNewAccountButton.clicked.connect(self.launchCreateAccount)
+        self.showPWButton.clicked.connect(self.revealPW)
 
         # add widgets to layout
         self.layoutHome.addWidget(self.signInLabel, 0, 0)  # row, column
         self.layoutHome.addWidget(self.userName, 1, 0)
         self.layoutHome.addWidget(self.password, 2, 0)
-        self.layoutHome.addWidget(self.nextButtonSignIn, 2, 1)
+        self.layoutHome.addWidget(self.nextButtonSignIn, 2, 2)
         self.layoutHome.addWidget(self.forgotPWLabel, 3, 0)
         self.layoutHome.addWidget(self.warningSymbolButton, 3, 1)
         self.layoutHome.addWidget(self.createNewAccountLabel, 4, 0)
         self.layoutHome.addWidget(self.createNewAccountButton, 4, 1)
+        self.layoutHome.addWidget(self.showPWButton, 2, 1)
 
         # tell QDialog constructor method to use layout to display the elements on the screen
         self.setLayout(self.layoutHome)
@@ -462,6 +465,14 @@ class mainWindow(QDialog):  # class inherits from QDialog
         #     self.launchLoggedIn()
         self.close()
         self.launchLoggedIn()
+
+    def revealPW(self):
+        if self.password_revealed == False:
+            self.password.setEchoMode(QLineEdit.Normal)
+        else:
+            self.password.setEchoMode(QLineEdit.Password)
+        #toggle password_revealed
+        self.password_revealed = (self.password_revealed == False)
 
 app = QApplication(sys.argv)
 fileApp = mainWindow()
