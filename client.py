@@ -9,8 +9,8 @@ from Crypto.Random import get_random_bytes
 from string import ascii_lowercase
 #
 
-HOST = "134.197.34.36"
-#HOST = "127.0.1.1"
+#HOST = "134.197.34.36"
+HOST = "127.0.1.1"
 PORT = 5928
 UserID = ""
 destination = HOST
@@ -43,9 +43,8 @@ def findFile(fileString):
     
 def fileMetadata(filePath):
         fileSize = findFile(filePath)
-        #This line below isn't required, right?
         fileName = os.path.basename(filePath)
-        fileInfo = os.path.splitext(filePath)
+        fileInfo = os.path.splitext(fileName)
         fileName = fileInfo[0]
         fileExt = fileInfo[1]
         timeUpload = datetime.now()
@@ -77,7 +76,8 @@ def retrieveFile(filePath):
     client = connectServer()
     if serverMessage("!GET " + filePath, client):
         try:
-            with open(filePath, "wb") as file:
+            fileName = os.path.basename(filePath) + "_enc"
+            with open(fileName, "wb") as file:
                 data = client.recv(BUFFER_SIZE)
                 while data:
                     file.write(data)
@@ -88,7 +88,7 @@ def retrieveFile(filePath):
             raise Exception(f"File Failed To Retrieve: {e}")
         else:
             client.shutdown(socket.SHUT_RD)
-            decryptFile(filePath)
+            decryptFile(fileName)
  
 def serverMessage(data, client):
     dataLen = len(data)
@@ -166,26 +166,68 @@ def encryptFile(filePath):
     with open(encryptedFile, "wb") as file:
         [file.write(x) for x in (cipher.nonce, tag, ciphertext)]
     return encryptedFile
-        
+
 def decryptFile(filePath):
     fileName = os.path.basename(filePath)
-    with open(filePath, "rb") as file:
+    with open(fileName, "rb") as file:
         nonce, tag, ciphertext = [file.read(x) for x in (16, 16, -1)]
     key = getPrivKey()
     if key:
         cipher = AES.new(key, AES.MODE_EAX, nonce)
         fileData = cipher.decrypt_and_verify(ciphertext, tag)
-        originalFileName = fileName
-        fileName = fileName.replace("_enc","")
-        fileInfo = os.path.splitext(fileName)
-        fileName = "retrieved_" + fileInfo[0] + fileInfo[1]
-        with open(fileName, "wb") as file:
+        originalName = fileName.replace("_enc","")
+        fileInfo = os.path.splitext(originalName)
+        originalName = "retrieved_" + fileInfo[0] + fileInfo[1]
+        with open(originalName, "wb") as file:
             file.write(fileData)
 
-        os.remove(originalFileName)
+        os.remove(fileName)
+        
+# def decryptFile(filePath):
+#     fileName = os.path.basename(filePath)
+#     with open(filePath, "rb") as file:
+#         nonce, tag, ciphertext = [file.read(x) for x in (16, 16, -1)]
+#     key = getPrivKey()
+#     if key:
+#         cipher = AES.new(key, AES.MODE_EAX, nonce)
+#         fileData = cipher.decrypt_and_verify(ciphertext, tag)
+#         fileName = fileName.replace("_enc","")
+#         fileInfo = os.path.splitext(fileName)
+#         fileName = "retrieved_" + fileInfo[0] + fileInfo[1]
+#         with open(fileName, "wb") as file:
+#             file.write(fileData)
+
+#         os.remove(filePath)
+'''
+    def sendNow_Clicked(self):
+        #TODO: Implement code here to send file indicated by file path
+        filePath = self.filePathInput.text()
+        if filePath != '':
+            try:
+                transferFile(filePath, "197.134.98.98")
+            except Exception as e:
+                print(e)
+                #Error Window
+            self.close()
+
+
+        def addFilename(fileName):
+            try:
+                retrieveFile(fileName)
+            except Exception as e:
+                print(e)
+                #Error Window
+            # fileName = "TEST FILE NAME"
+            newFilename = QListWidgetItem(fileName)
+            self.mainSection.addItem(newFilename)
+
+        addFilename("CS450_Ch8.pdf")
+'''
+
 
 try:
     #transferFile("CS450_Ch8.pdf", destination)
-    retrieveFile("CS450_Ch8.pdf")
+    retrieveFile("CS450_Ch11.pdf")
+    #encryptFile("CS450_Ch11.pdf")
 except Exception as e:
     print(e)
