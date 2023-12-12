@@ -387,6 +387,184 @@ class fileDeleteWarningWindow(QDialog):
         
         self.setLayout(layoutFileDeleteWarning)
 
+class storageOrUserDeviceWiindow(QDialog):
+    def __init__(self):   # override constructor method
+        windowName = "To Be Delivered"   # sets the window name
+
+        super().__init__()   # call QDialog's constructor method (parent)
+
+        self.setStyleSheet("background-color: " + LIGHT_PURPLE + ";") #sets background color, very similar to CSS
+        self.layoutStorageOrUserComputer = QGridLayout()   # add layout for how QWidget should be displayed on screen
+
+        # labels
+        self.storageOrUserLabel = QLabel("<h1>Are you on the storage or user computer?</h1>")
+
+        # buttons
+        self.storageButton = QPushButton("Storage")   # create a push button widget
+        self.userButton = QPushButton("User")
+
+        # button connections
+        self.storageButton.clicked.connect(self.launchStorageComputerSigninWindow)
+        self.userButton.clicked.connect(self.launchUserComputerSigninWindow)
+
+        # add widgets to layout
+        self.layoutStorageOrUserComputer.addWidget(self.storageOrUserLabel, 0, 0)  # row, column
+        self.layoutStorageOrUserComputer.addWidget(self.storageButton, 1, 0)
+        self.layoutStorageOrUserComputer.addWidget(self.userButton, 2, 0)
+
+        # tell QDialog constructor method to use layout to display the elements on the screen
+        self.setLayout(self.layoutStorageOrUserComputer)
+
+        # sets name of the window
+        self.setWindowTitle(windowName)
+        
+    # launches the user sign in window if user is on user computer 
+    def launchUserComputerSigninWindow(self):
+        self.window = mainWindow()
+        self.window.show()
+    
+    def launchStorageComputerSigninWindow(self):
+        self.window = storageComputerSigninWindow()
+        self.window.show()
+
+class storageComputerSigninWindow(QDialog):
+    def __init__(self):   # override constructor method
+        windowName = "To Be Delivered"   # sets the window name
+
+        super().__init__()   # call QDialog's constructor method (parent)
+
+        self.setStyleSheet("background-color: " + LIGHT_PURPLE + ";") # sets background color, very similar to CSS
+        self.layoutStorageComputerSignin = QGridLayout()   # add layout for how QWidget should be displayed on screen
+
+        # labels
+        self.signInLabel = QLabel("<h1>Storage Sign In</h1>")   # create a label widget
+        self.forgotPWLabel = QLabel("Forward Password?")   
+        self.createNewAccountLabel = QLabel("Don't have an account?")
+
+        # line edits
+        self.userName = QLineEdit()
+        self.password = QLineEdit()
+        self.password.setEchoMode(QLineEdit.Password)
+        # set placeholder text
+        self.userName.setPlaceholderText("Username")
+        self.password.setPlaceholderText("Password")
+        #set background color
+        self.userName.setStyleSheet("background-color: white;")
+        self.password.setStyleSheet("background-color: white;")
+
+        # buttons
+        self.nextButtonSignIn = QPushButton(">")   # create a push button widget
+        self.warningSymbolButton = QPushButton("⚠")
+        self.createNewAccountButton = QPushButton("Create an account")
+        self.showPWButton = QPushButton("<0>")
+        self.password_revealed = False
+
+        # button connections
+        self.nextButtonSignIn.clicked.connect(self.nextButtonSignIn_Clicked)
+        self.warningSymbolButton.clicked.connect(self.launchForgotPW)
+        self.createNewAccountButton.clicked.connect(self.launchCreateAccount)
+        self.showPWButton.clicked.connect(self.revealPW)
+
+        # add widgets to layout
+        self.layoutStorageComputerSignin.addWidget(self.signInLabel, 0, 0)  # row, column
+        self.layoutStorageComputerSignin.addWidget(self.userName, 1, 0)
+        self.layoutStorageComputerSignin.addWidget(self.password, 2, 0)
+        self.layoutStorageComputerSignin.addWidget(self.nextButtonSignIn, 2, 2)
+        self.layoutStorageComputerSignin.addWidget(self.forgotPWLabel, 3, 0)
+        self.layoutStorageComputerSignin.addWidget(self.warningSymbolButton, 3, 1)
+        self.layoutStorageComputerSignin.addWidget(self.createNewAccountLabel, 4, 0)
+        self.layoutStorageComputerSignin.addWidget(self.createNewAccountButton, 4, 1)
+        self.layoutStorageComputerSignin.addWidget(self.showPWButton, 2, 1)
+
+        # tell QDialog constructor method to use layout to display the elements on the screen
+        self.setLayout(self.layoutStorageComputerSignin)
+
+        # sets name of the window
+        self.setWindowTitle(windowName)
+
+    # need to check for correct password and username to be able to launch logged in window. 
+    def launchLoggedIn(self):
+        self.window = loggedInStorageWindow()
+        self.window.show()
+
+    def launchForgotPW(self):
+        self.window = forgotPWWindow()
+        self.window.show()
+
+    def launchCreateAccount(self):
+        self.window = createAccountWindow()
+        self.window.show()
+
+    def nextButtonSignIn_Clicked(self):
+        email = self.userName.text()
+        password = self.password.text()
+        # if email == "admin" and password == "pass":
+        #     self.close()
+        #     self.launchLoggedIn()
+        self.close()
+        self.launchLoggedIn()
+
+    def revealPW(self):
+        if self.password_revealed == False:
+            self.password.setEchoMode(QLineEdit.Normal)
+        else:
+            self.password.setEchoMode(QLineEdit.Password)
+        #toggle password_revealed
+        self.password_revealed = (self.password_revealed == False)
+
+class loggedInStorageWindow(QDialog):
+    def __init__(self):
+        windowName = "Welcome Storage user_name"
+
+        super().__init__()
+
+        self.setStyleSheet("background-color: " + LIGHT_PURPLE + ";")
+        self.setWindowTitle(windowName)
+        layoutLoggedIn = QGridLayout()
+
+        # labels
+        self.folderSection = QListWidget()
+        self.folderSection.setMaximumSize(150, 500)
+        QListWidgetItem("Home", self.folderSection)
+        self.mainSection = QListWidget()
+        self.mainSection.setMaximumSize(1000, 1000)
+        self.folderSection.setStyleSheet("background-color: white;")
+        self.mainSection.setStyleSheet("background-color: white;")
+        
+        # buttons
+        self.newFolderSection = QPushButton("Create New Folder")
+        self.uploadFileSection = QPushButton("Upload a File")
+        self.uploadFileSection.setStyleSheet("background-color: white;")
+        self.downloadFileButton = QPushButton("Download file")
+
+        # button connections
+        self.uploadFileSection.clicked.connect(self.launchUploadFile)
+        self.newFolderSection.clicked.connect(self.launchCreateFolder)
+        # self.downloadFileButton.clicked.connect(self.launchCreateFolder), SHOULD DOWNLOAD FILE TO USER COMPUTER
+
+        layoutLoggedIn.addWidget(self.folderSection, 0, 0)
+        layoutLoggedIn.addWidget(self.newFolderSection, 1, 0)
+        layoutLoggedIn.addWidget(self.mainSection, 0, 1)
+        layoutLoggedIn.addWidget(self.uploadFileSection, 1, 1)
+        layoutLoggedIn.addWidget(self.downloadFileButton, 1, 2)
+
+        def addFilename(fileName):
+            # fileName = receiveFile(), server call 
+            # fileName = "TEST FILE NAME"
+            newFilename = QListWidgetItem(fileName)
+            self.mainSection.addItem(newFilename)
+
+        addFilename("TEST FILE")
+
+        self.setLayout(layoutLoggedIn)
+
+    def launchUploadFile(self):
+        self.window = uploadFileWindow()
+        self.window.show()
+    
+    def launchCreateFolder(self):
+        self.window = createFolderWindow()
+        self.window.show()
 
 class mainWindow(QDialog):  # class inherits from QDialog
 
@@ -420,6 +598,7 @@ class mainWindow(QDialog):  # class inherits from QDialog
         self.warningSymbolButton = QPushButton("⚠")
         self.createNewAccountButton = QPushButton("Create an account")
         self.showPWButton = QPushButton("<0>")
+        self.password_revealed = False
 
         # button connections
         self.nextButtonSignIn.clicked.connect(self.nextButtonSignIn_Clicked)
@@ -467,9 +646,14 @@ class mainWindow(QDialog):  # class inherits from QDialog
         self.launchLoggedIn()
 
     def revealPW(self):
-        self.password.setEchoMode(QLineEdit.Normal)
+        if self.password_revealed == False:
+            self.password.setEchoMode(QLineEdit.Normal)
+        else:
+            self.password.setEchoMode(QLineEdit.Password)
+        #toggle password_revealed
+        self.password_revealed = (self.password_revealed == False)
 
 app = QApplication(sys.argv)
-fileApp = mainWindow()
+fileApp = storageOrUserDeviceWiindow()
 fileApp.show()
 sys.exit(app.exec_())
