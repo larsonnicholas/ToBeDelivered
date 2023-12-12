@@ -535,12 +535,12 @@ class loggedInStorageWindow(QDialog):
         self.newFolderSection = QPushButton("Create New Folder")
         self.uploadFileSection = QPushButton("Upload a File")
         self.uploadFileSection.setStyleSheet("background-color: white;")
-        self.downloadFileButton = QPushButton("Download file")
+        self.downloadFileButton = QPushButton("Download a file")
 
         # button connections
         self.uploadFileSection.clicked.connect(self.launchUploadFile)
         self.newFolderSection.clicked.connect(self.launchCreateFolder)
-        # self.downloadFileButton.clicked.connect(self.launchCreateFolder), SHOULD DOWNLOAD FILE TO USER COMPUTER
+        self.downloadFileButton.clicked.connect(self.launchDownloadFile) # SHOULD DOWNLOAD FILE TO USER COMPUTER
 
         layoutLoggedIn.addWidget(self.folderSection, 0, 0)
         layoutLoggedIn.addWidget(self.newFolderSection, 1, 0)
@@ -565,6 +565,42 @@ class loggedInStorageWindow(QDialog):
     def launchCreateFolder(self):
         self.window = createFolderWindow()
         self.window.show()
+
+    def launchDownloadFile(self):
+        self.window = downloadAFileWindow()
+        self.window.show()
+
+class downloadAFileWindow(QDialog):
+    def __init__(self):
+        windowName = "Download a File"
+
+        super().__init__()
+
+        self.setWindowTitle(windowName)
+        layoutDownloadFile = QGridLayout()
+
+        # labels
+        self.downloadFileLabel = QLabel("Enter in the file name you wish to download:")
+
+        # line edits
+        self.downloadFileNameInput = QLineEdit()
+
+        # buttons
+        self.downloadFileButton = QPushButton("download")
+
+        # button connections
+        self.downloadFileButton.clicked.connect(self.downloadFile)
+
+        layoutDownloadFile.addWidget(self.downloadFileLabel, 0, 0)
+        layoutDownloadFile.addWidget(self.downloadFileNameInput, 1, 0)
+        layoutDownloadFile.addWidget(self.downloadFileButton, 1, 1)
+
+        self.setLayout(layoutDownloadFile)
+
+    def downloadFile(self):
+        fileName = self.downloadFileNameInput.text()
+        print(fileName)
+        # retrieveFile(conn, fileName)
 
 class mainWindow(QDialog):  # class inherits from QDialog
 
